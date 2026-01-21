@@ -17,6 +17,33 @@
     #resetBtn { background:#f44336; color:white; }
     .answers { font-size:0.95rem; color:#ddd; padding-left:12px; }
     .answers b { color:#4caf50; }
+    
+    /* Custom scrollbar */
+    #quizQuestionsList::-webkit-scrollbar,
+    #choicesList::-webkit-scrollbar,
+    #adminDrawings::-webkit-scrollbar {
+      width: 10px;
+    }
+    
+    #quizQuestionsList::-webkit-scrollbar-track,
+    #choicesList::-webkit-scrollbar-track,
+    #adminDrawings::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+    }
+    
+    #quizQuestionsList::-webkit-scrollbar-thumb,
+    #choicesList::-webkit-scrollbar-thumb,
+    #adminDrawings::-webkit-scrollbar-thumb {
+      background: #ff4081;
+      border-radius: 10px;
+    }
+    
+    #quizQuestionsList::-webkit-scrollbar-thumb:hover,
+    #choicesList::-webkit-scrollbar-thumb:hover,
+    #adminDrawings::-webkit-scrollbar-thumb:hover {
+      background: #ff6f91;
+    }
   </style>
 </head>
 <body>
@@ -45,7 +72,7 @@
   <!-- NEW: Would You Rather Choices -->
   <div id="wyrChoicesSection" style="margin-top:60px;">
     <h3>Jej wybory w Would You Rather</h3>
-    <div id="choicesList" style="font-size:1.2rem;"></div>
+    <div id="choicesList" style="font-size:1.2rem; max-height:400px; overflow-y:auto; padding:10px; background:rgba(0,0,0,0.2); border-radius:12px;"></div>
     <button onclick="clearWyrChoices()" style="margin-top:20px; padding:10px 20px; background:#f44336; color:white; border:none; border-radius:8px; cursor:pointer;">
       Wyczyść historię wyborów
     </button>
@@ -55,11 +82,12 @@
   <div id="quizQuestionsSection" style="margin-top:60px;">
     <h3>Wszystkie pytania quizu</h3>
 
-    <div id="quizQuestionsList" style="font-size:1.15rem;"></div>
+    <div id="quizQuestionsList" style="font-size:1.15rem; max-height:500px; overflow-y:auto; padding:10px; background:rgba(0,0,0,0.2); border-radius:12px;"></div>
 
     <div style="margin-top:20px; font-size:0.95rem; color:#aaa;">
-      <p>💡 Różowe – pytania wbudowane</p>
-      <p>💚 Zielone – pytania dodane przez nią</p>
+      <p>💖 Różowe – pytania wbudowane</p>
+      <p>💜 Fioletowe – pytania zatwierdzone (można usunąć)</p>
+      <p>💚 Zielone – pytania dodane przez nią (czekają na zatwierdzenie)</p>
     </div>
   </div>
 
@@ -189,9 +217,9 @@
     let html = "";
     let counter = 1;
 
-    function questionBlock(q, type, deleteId = null) {
-      const color = type === "built" ? "#ff4081" : "#4caf50";
-      const label = type === "built" ? "Pytanie wbudowane" : "Dodane przez nią";
+    function questionBlock(q, type, deleteId = null, approveData = null) {
+      const color = type === "built" ? "#ff4081" : (type === "approved" ? "#9c27b0" : "#4caf50");
+      const label = type === "built" ? "Pytanie wbudowane" : (type === "approved" ? "Zatwierdzone pytanie" : "Dodane przez nią");
 
       return `
         <div class="choice" style="border-left-color:${color}">
@@ -207,14 +235,35 @@
               `<div>${i===q.correct?`<b>${a} ✓</b>`:a}</div>`
             ).join("")}
 
-            ${
-              deleteId !== null ? `
-              <button onclick="deleteCustomQuestion('${deleteId}')"
-                style="margin-top:10px;background:#f44336;color:white;
-                       border:none;padding:6px 12px;border-radius:6px;cursor:pointer;">
-                Usuń pytanie
-              </button>` : ""
-            }
+            <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap;">
+              ${
+                approveData !== null ? `
+                <button onclick="approveQuestion('${deleteId}', ${JSON.stringify(approveData).replace(/"/g, '&quot;')})"
+                  style="background:#4caf50;color:white;
+                         border:none;padding:8px 16px;border-radius:6px;cursor:pointer;
+                         font-weight:600;">
+                  ✓ Zatwierdź i dodaj do głównej puli
+                </button>` : ""
+              }
+              
+              ${
+                deleteId !== null && type === "custom" ? `
+                <button onclick="deleteCustomQuestion('${deleteId}')"
+                  style="background:#f44336;color:white;
+                         border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">
+                  Usuń pytanie
+                </button>` : ""
+              }
+              
+              ${
+                type === "approved" ? `
+                <button onclick="deleteApprovedQuestion(${deleteId})"
+                  style="background:#f44336;color:white;
+                         border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">
+                  Usuń zatwierdzone pytanie
+                </button>` : ""
+              }
+            </div>
           </div>
         </div>
       `;
@@ -225,6 +274,12 @@
       html += questionBlock(q, "built");
     });
 
+    // Zatwierdzone pytania z localStorage
+    const approvedQuestions = JSON.parse(localStorage.getItem("approvedQuestions") || "[]");
+    approvedQuestions.forEach((q, index) => {
+      html += questionBlock(q, "approved", index);
+    });
+
     // Firebase questions - real-time listener
     const questionsQuery = query(collection(db, "questions"), orderBy("createdAt", "desc"));
     
@@ -232,7 +287,13 @@
       let firebaseHtml = "";
       snapshot.docs.forEach(docSnap => {
         const q = docSnap.data();
-        firebaseHtml += questionBlock(q, "custom", docSnap.id);
+        // Przekaż dane pytania do zatwierdzenia
+        const approveData = {
+          q: q.q,
+          answers: q.answers,
+          correct: q.correct
+        };
+        firebaseHtml += questionBlock(q, "custom", docSnap.id, approveData);
       });
       
       container.innerHTML = html + firebaseHtml || "<p style='color:#aaa'>Brak pytań.</p>";
@@ -242,12 +303,58 @@
   // Load on open
   loadQuizQuestions();
 
+  // ===== ZATWIERDZANIE PYTANIA =====
+  window.approveQuestion = async function(docId, questionData) {
+    if (!confirm("Zatwierdzić to pytanie?\n\nZostanie dodane do głównej puli pytań i usunięte z Firebase.")) return;
+
+    try {
+      // 1. Pobierz aktualne zatwierdzone pytania z localStorage
+      let approvedQuestions = JSON.parse(localStorage.getItem("approvedQuestions") || "[]");
+      
+      // 2. Dodaj nowe pytanie
+      approvedQuestions.push(questionData);
+      
+      // 3. Zapisz z powrotem
+      localStorage.setItem("approvedQuestions", JSON.stringify(approvedQuestions));
+      
+      // 4. Usuń z Firebase
+      await deleteDoc(doc(db, "questions", docId));
+      
+      alert("✓ Pytanie zatwierdzone i dodane do głównej puli!\n\nTeraz będzie zawsze w quizie.");
+      
+      // Odśwież listę
+      loadQuizQuestions();
+      
+    } catch (error) {
+      console.error("Błąd zatwierdzania:", error);
+      alert("Błąd podczas zatwierdzania pytania");
+    }
+  };
+
   window.deleteCustomQuestion = async function(docId) {
     if (!confirm("Usunąć to pytanie?")) return;
 
     try {
       await deleteDoc(doc(db, "questions", docId));
       alert("Pytanie usunięte! ✓");
+    } catch (error) {
+      console.error("Błąd usuwania:", error);
+      alert("Błąd podczas usuwania pytania");
+    }
+  };
+
+  // ===== USUWANIE ZATWIERDZONEGO PYTANIA =====
+  window.deleteApprovedQuestion = function(index) {
+    if (!confirm("Usunąć to zatwierdzone pytanie?")) return;
+
+    try {
+      let approvedQuestions = JSON.parse(localStorage.getItem("approvedQuestions") || "[]");
+      approvedQuestions.splice(index, 1);
+      localStorage.setItem("approvedQuestions", JSON.stringify(approvedQuestions));
+      
+      alert("Pytanie usunięte! ✓");
+      loadQuizQuestions(); // Odśwież listę
+      
     } catch (error) {
       console.error("Błąd usuwania:", error);
       alert("Błąd podczas usuwania pytania");
