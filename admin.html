@@ -70,10 +70,14 @@
 </div>
 
 <script type="module">
-  
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import { getFirestore, collection, onSnapshot, deleteDoc, doc } 
-    from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+  import {
+    getFirestore,
+    collection,
+    onSnapshot,
+    deleteDoc,
+    doc
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBf7tYEGzG112MQ2xKmzKJv9SAZbH6Y7so",
@@ -87,177 +91,51 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
+  const list = document.getElementById("allQuestions");
+
   onSnapshot(collection(db, "questions"), snapshot => {
-    console.log("LIVE QUESTIONS:", snapshot.docs.length);
-    // TU zaraz wstawimy renderowanie
-  });
+    list.innerHTML = "";
 
+    snapshot.forEach(docSnap => {
+      const q = docSnap.data();
 
-  const ADMIN_PASSWORD = "Klaudiusz+Marysia";
+      const box = document.createElement("div");
+      box.style.border = "1px solid #ff4081";
+      box.style.borderRadius = "12px";
+      box.style.padding = "16px";
+      box.style.marginBottom = "16px";
+      box.style.cursor = "pointer";
 
-  // ===== PYTANIA WBUdOWANE (MUSI BYĆ TO SAMO CO W script.js) =====
- const ALL_QUESTIONS = [
-    { q: "Kiedy się poznaliśmy?", answers: ["14 lutego", "1 marca", "28 stycznia", "18 sierpnia"], correct: 2 },
-    { q: "Jakim pieszczotliwym imieniem mnie nazywałaś?", answers: ["Wszystkie odpowiedzi", "Kochanie", "Misiu", "Baranek"], correct: 0 },
-    { q: "Kiedy był nasz pierwszy pocałunek?", answers: ["14 lutego", "1 września", "28 stycznia", "18 sierpnia"], correct: 3 },
-    { q: "Gdzie była nasza pierwsza randka?", answers: ["Cliffs Old Head of Kinsale", "Nad jeziorem w Górzynie", "Pizzeria przy stacji", "Zoo we Wrocławiu"], correct: 0 },
-    { q: "W jaką grę ciągle graliśmy razem?", answers: ["Among Us", "Ludo", "FIFA", "Minecraft"], correct: 1 },
-    { q: "Co się stało gdy szliśmy na pizzę?", answers: ["Zamknęli pizzerię", "Jedliśmy ją na ławeczce", "Zgubiliśmy się", "Spotkaliśmy znajomych"], correct: 1 },
-    { q: "Jaki drink piłaś u mojej mamy?", answers: ["Aperol", "Prosecco", "Malibu ananasowe", "Mojito"], correct: 2 },
-    { q: "Co się stało z Twoim drinkiem?", answers: ["Przypadkowo Ci go wylałem", "Zostawiłaś go", "Wypiłam go szybko", "Nic się nie stało"], correct: 0 },
-    { q: "Jakie lody kupiliśmy razem?", answers: ["Waniliowe", "Truskawkowe", "Z nutelli", "Czekoladowe"], correct: 2 },
-    { q: "Gdzie byliśmy na Twoich urodzinach?", answers: ["We Wrocławiu w zoo", "Nad jeziorem", "W kinie", "W restauracji"], correct: 0 },
-    { q: "Co było nie tak z hotelem w Poznaniu?", answers: ["Za daleko", "Zimno było", "Kamień na kranach i włosy w łazience", "Za drogi"], correct: 2 },
-    { q: "Dlaczego nazywałaś mnie barankiem?", answers: ["Bo lubiłem owce", "Bo moje włosy puszyły się na deszczu", "Bo byłem uparty", "Bo dużo jadłem"], correct: 1 },
-    { q: "Gdzie usiedliśmy gdy przyleciałem do Ciebie?", answers: ["Na lotnisku", "W kawiarni", "Nad jeziorkiem w Górzynie", "W parku"], correct: 2 },
-    { q: "Jak nazwałaś mnie 28 stycznia?", answers: ["Moim szczęściem", "Moją miłością", "Moim wszystkim", "Moim światem"], correct: 0 },
-    { q: "Co robiliśmy podczas nocnych rozmów?", answers: ["Pisaliśmy wiadomości", "Zasypialiśmy razem", "Graliśmy", "Oglądaliśmy filmy"], correct: 1 }
-  ];
-
-  // Password check
-  const entered = prompt("Podaj hasło administracyjne:");
-  if (entered !== ADMIN_PASSWORD) {
-    alert("Nieprawidłowe hasło.");
-    window.close();
-  }
-
-  // Load points
-  let total = parseInt(localStorage.getItem("quizTotalPoints") || "0");
-  document.getElementById("adminTotal").textContent = total;
-
-  function updateTotal() {
-    localStorage.setItem("quizTotalPoints", total);
-    document.getElementById("adminTotal").textContent = total;
-  }
-
-  window.changePoints = function() {
-    const val = parseInt(document.getElementById("pointsInput").value);
-    if (isNaN(val)) return alert("Wpisz poprawną liczbę.");
-    total += val;
-    updateTotal();
-    document.getElementById("pointsInput").value = "";
-  };
-
-  window.setPoints = function(value) {
-    if (!confirm(`Ustawić punkty na dokładnie ${value}?`)) return;
-    total = value;
-    updateTotal();
-  };
-
-  // NEW: Load & display her Would You Rather choices
-  function loadWyrChoices() {
-    const choices = JSON.parse(localStorage.getItem('wyrChoices') || '[]');
-    const listEl = document.getElementById('choicesList');
-
-    if (choices.length === 0) {
-      listEl.innerHTML = '<p style="color:#aaa; font-style:italic;">Jeszcze nie ma żadnych wyborów.</p>';
-      return;
-    }
-
-    let html = '';
-    choices.forEach(c => {
-      html += `
-        <div class="choice">
-          <strong>${c.date} – ${c.timestamp}</strong><br>
-          <em>${c.question.replace(/\n/g, '<br>')}</em><br>
-          <strong>Wybrała: ${c.chosen}</strong>
+      box.innerHTML = `
+        <strong>${q.q}</strong>
+        <div style="display:none;margin-top:10px">
+          ${q.answers.map((a, i) =>
+            `<div>${i === q.correct ? "✅" : "❌"} ${a}</div>`
+          ).join("")}
+          <button style="margin-top:10px;background:#f44336;color:white;border:none;
+            padding:6px 12px;border-radius:6px;cursor:pointer">
+            Usuń
+          </button>
         </div>
       `;
+
+      const details = box.querySelector("div");
+      box.onclick = () => {
+        details.style.display =
+          details.style.display === "none" ? "block" : "none";
+      };
+
+      box.querySelector("button").onclick = async e => {
+        e.stopPropagation();
+        if (!confirm("Usunąć pytanie?")) return;
+        await deleteDoc(doc(db, "questions", docSnap.id));
+      };
+
+      list.appendChild(box);
     });
-    listEl.innerHTML = html;
-  }
-
-  // Clear history
-  window.clearWyrChoices = function() {
-    if (!confirm("Na pewno chcesz wyczyścić całą historię jej wyborów?")) return;
-    localStorage.removeItem('wyrChoices');
-    loadWyrChoices();
-  };
-
-  // Load choices on page open
-  loadWyrChoices();
-  // ================= QUIZ QUESTIONS VIEW =================
-
-
-
-function loadQuizQuestions() {
-  const container = document.getElementById("quizQuestionsList");
-  const custom = JSON.parse(localStorage.getItem("customQuizQuestions") || "[]");
-
-  let html = "";
-  let counter = 1;
-
-  function questionBlock(q, type, deleteIndex = null) {
-    const color = type === "built" ? "#ff4081" : "#4caf50";
-    const label = type === "built" ? "Pytanie wbudowane" : "Dodane przez nią";
-
-    return `
-      <div class="choice" style="border-left-color:${color}">
-        <div onclick="toggleAnswers(this)" style="cursor:pointer;">
-          <strong>${counter++}. ${q.q}</strong>
-          <div style="font-size:0.85rem;color:${color};margin-top:4px;">
-            ${label} • kliknij aby zobaczyć odpowiedzi
-          </div>
-        </div>
-
-        <div class="answers" style="display:none;margin-top:12px;">
-          ${q.answers.map((a,i)=>
-            `<div>${i===q.correct?`<b>${a}</b>`:a}</div>`
-          ).join("")}
-
-          ${
-            deleteIndex !== null ? `
-            <button onclick="deleteCustomQuestion(${deleteIndex})"
-              style="margin-top:10px;background:#f44336;color:white;
-                     border:none;padding:6px 12px;border-radius:6px;cursor:pointer;">
-              Usuń pytanie
-            </button>` : ""
-          }
-        </div>
-      </div>
-    `;
-  }
-
-  ALL_QUESTIONS.forEach(q => {
-    html += questionBlock(q, "built");
   });
-
-  custom.forEach((q,i) => {
-    html += questionBlock(q, "custom", i);
-  });
-
-  container.innerHTML = html || "<p style='color:#aaa'>Brak pytań.</p>";
-}
-
-
-// Load on open
-loadQuizQuestions();
-
-window.deleteCustomQuestion = function(index) {
-  if (!confirm("Usunąć to pytanie?")) return;
-
-  const custom = JSON.parse(localStorage.getItem("customQuizQuestions") || "[]");
-  custom.splice(index, 1);
-  localStorage.setItem("customQuizQuestions", JSON.stringify(custom));
-
-  loadQuizQuestions();
-};
-
-// 🔄 Auto-refresh gdy ona doda pytanie
-window.addEventListener("storage", (e) => {
-  if (e.key === "customQuizQuestions") {
-    loadQuizQuestions();
-  }
-});
-
-window.toggleAnswers = function(el) {
-  const answers = el.nextElementSibling;
-  answers.style.display =
-    answers.style.display === "none" ? "block" : "none";
-};
-
-
 </script>
 
 </body>
+
 </html>
