@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin – Quiz</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      padding: 30px;
+    }
+    h1 {
+      color: #ff4081;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .question {
+      border: 1px solid #ff4081;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      background: rgba(255,255,255,0.05);
+    }
+    .answers {
+      display: none;
+      margin-top: 10px;
+    }
+    .delete-btn {
+      margin-top: 10px;
+      background: #f44336;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Panel administracyjny</h1>
+
+<div id="quizQuestionsList"></div>
+
+<!-- Firebase v8 – BEZ modułów -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<script>
+  console.log("ADMIN SCRIPT STARTED");
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBf7tYEGzG112MQ2xKmzKJv9SAZbH6Y7so",
+    authDomain: "quiz-o-nas.firebaseapp.com",
+    projectId: "quiz-o-nas",
+    storageBucket: "quiz-o-nas.appspot.com",
+    messagingSenderId: "467382949049",
+    appId: "1:467382949049:web:bb92db1e925cebec257768"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const list = document.getElementById("quizQuestionsList");
+  if (!list) {
+    alert("BŁĄD: brak #quizQuestionsList");
+  }
+
+  db.collection("questions").onSnapshot(snapshot => {
+    list.innerHTML = "";
+
+    if (snapshot.empty) {
+      list.innerHTML = "<p style='color:#aaa'>Brak pytań w Firestore.</p>";
+      return;
+    }
+
+    snapshot.forEach(doc => {
+      const q = doc.data();
+
+      const box = document.createElement("div");
+      box.className = "question";
+
+      box.innerHTML = `
+        <strong>${q.q}</strong>
+        <div class="answers">
+          ${q.answers.map((a, i) =>
+            `<div>${i === q.correct ? "✅" : "❌"} ${a}</div>`
+          ).join("")}
+          <button class="delete-btn">Usuń</button>
+        </div>
+      `;
+
+      const answers = box.querySelector(".answers");
+      box.onclick = () => {
+        answers.style.display =
+          answers.style.display === "none" ? "block" : "none";
+      };
+
+      box.querySelector(".delete-btn").onclick = async e => {
+        e.stopPropagation();
+        if (!confirm("Usunąć pytanie?")) return;
+        await db.collection("questions").doc(doc.id).delete();
+      };
+
+      list.appendChild(box);
+    });
+  });
+</script>
+
+</body>
+</html>
