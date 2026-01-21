@@ -682,11 +682,14 @@ if (canvas) {
   };
 
   // ZAPIS LOKALNY (PNG)
-  window.saveDrawingLocal = function () {
-    const dataURL = canvas.toDataURL("image/png");
-    localStorage.setItem("savedDrawing", dataURL);
-    alert("💖 Rysunek zapisany!");
-  };
+ window.saveDrawingLocal = function () {
+  if (typeof window.saveDrawingFirebase !== "function") {
+    alert("Firebase jeszcze się ładuje…");
+    return;
+  }
+  window.saveDrawingFirebase();
+};
+
 }
 // ===== FULLSCREEN RYSOWANIA =====
 window.openDrawingFullscreen = function () {
