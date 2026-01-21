@@ -681,15 +681,7 @@ if (canvas) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   };
 
-  // ZAPIS LOKALNY (PNG)
- window.saveDrawingLocal = function () {
-  if (typeof window.saveDrawingFirebase !== "function") {
-    alert("Firebase jeszcze się ładuje…");
-    return;
-  }
-  window.saveDrawingFirebase();
-};
-
+  
 }
 // ===== FULLSCREEN RYSOWANIA =====
 window.openDrawingFullscreen = function () {
