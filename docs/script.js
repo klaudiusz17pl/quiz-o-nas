@@ -22,7 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // ================= NAGRODY =================
   const REWARD_LEVELS = [
     { points: 5,  name: "Licznik miłości ❤️", type: "counter",    startDate: "2025-03-15" },
-    { points: 10, name: "Galeria wspomnień 📸", type: "slideshow", images: ["https://via.placeholder.com/600x400/ffb3c6/ffffff?text=Zdjęcie+1","https://via.placeholder.com/600x400/ff99b4/ffffff?text=Zdjęcie+2","https://via.placeholder.com/600x400/ffccd5/ffffff?text=Zdjęcie+3"] },
+    { points: 10, name: "Galeria wspomnień 📸", type: "slideshow", images: [
+      "images/zdjecie1.jpg",
+      "images/zdjecie2.jpg",
+      "images/zdjecie3.jpg"
+    ]},
     { points: 15, name: "Wiadomość ❤️", type: "text", content: () => getDailyRewardMessage()},
     { points: 20, name: "Narysuj naszą przyszłość ♡", type: "drawing" },
     { points: 35, name: "Odliczamy do naszej rocznicy! 🎉❤️", type: "countdown", targetDate: "2026-03-15" }
