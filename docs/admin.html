@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin – Quiz o nas ❤️</title>
-
+  <link rel="stylesheet" href="style.css">
   <style>
     body { background:#111; color:#fff; font-family:Segoe UI,sans-serif; padding:30px; }
     .container { max-width:800px; margin:0 auto; background:rgba(255,255,255,0.08); padding:40px; border-radius:16px; }
@@ -12,137 +12,289 @@
     h3 { color:#ff6f91; margin:40px 0 15px; }
     .choice { background:rgba(255,255,255,0.05); padding:16px; margin:12px 0; border-radius:12px; border-left:5px solid #ff4081; }
     .choice strong { color:#ffb3c6; }
-    button { padding:10px 18px; margin-top:10px; border:none; border-radius:8px; cursor:pointer; }
+    button { padding:12px 24px; font-size:1.1rem; margin:8px; border:none; border-radius:8px; cursor:pointer; }
+    #addBtn { background:#4caf50; color:white; }
+    #resetBtn { background:#f44336; color:white; }
   </style>
 </head>
-
 <body>
+
 <div class="container">
+  <h1>Panel administracyjny – Klaudiusz ❤️</h1>
 
-<h1>Panel administracyjny ❤️</h1>
+  <p style="text-align:center; font-size:1.4rem;">
+    Aktualne punkty: <strong id="adminTotal">0</strong>
+  </p>
 
-<p style="text-align:center;font-size:1.4rem;">
-  Aktualne punkty: <strong id="adminTotal">0</strong>
-</p>
+  <div style="text-align:center; margin:30px 0;">
+    <input type="number" id="pointsInput" placeholder="Dodaj / odejmij" style="padding:12px; font-size:1.3rem; width:160px; text-align:center;">
+    <button id="addBtn" onclick="changePoints()">Zastosuj</button>
+  </div>
 
-<div style="text-align:center;margin:30px 0;">
-  <input type="number" id="pointsInput" placeholder="Dodaj / odejmij"
-    style="padding:10px;font-size:1.2rem;width:160px;text-align:center;">
-  <button onclick="changePoints()" style="background:#4caf50;color:white;">Zastosuj</button>
+  <div style="text-align:center; margin:30px 0;">
+    <button id="resetBtn" onclick="setPoints(0)">Resetuj do 0</button>
+    <button onclick="setPoints(5)">Ustaw 5</button>
+    <button onclick="setPoints(10)">Ustaw 10</button>
+    <button onclick="setPoints(15)">Ustaw 15</button>
+    <button onclick="setPoints(20)">Ustaw 20</button>
+    <button onclick="setPoints(35)">Ustaw 35</button>
+  </div>
+
+  <!-- NEW: Would You Rather Choices -->
+  <div id="wyrChoicesSection" style="margin-top:60px;">
+    <h3>Jej wybory w Would You Rather</h3>
+    <div id="choicesList" style="font-size:1.2rem;"></div>
+    <button onclick="clearWyrChoices()" style="margin-top:20px; padding:10px 20px; background:#f44336; color:white; border:none; border-radius:8px; cursor:pointer;">
+      Wyczyść historię wyborów
+    </button>
+  </div>
+
+  <!-- QUIZ QUESTIONS OVERVIEW -->
+<div id="quizQuestionsSection" style="margin-top:60px;">
+  <h3>Wszystkie pytania quizu</h3>
+
+  <div id="quizQuestionsList" style="font-size:1.15rem;"></div>
+
+  <div style="margin-top:20px; font-size:0.95rem; color:#aaa;">
+    <p>💡 Różowe – pytania wbudowane</p>
+    <p>💚 Zielone – pytania dodane przez nią</p>
+  </div>
 </div>
 
-<div style="text-align:center;">
-  <button onclick="setPoints(0)" style="background:#f44336;color:white;">Reset</button>
-  <button onclick="setPoints(10)">10</button>
-  <button onclick="setPoints(20)">20</button>
-  <button onclick="setPoints(35)">35</button>
+
+  <div style="text-align:center; margin-top:80px;">
+    <hr style="margin:40px 0; border:1px solid rgba(255,255,255,0.2);">
+
+<h3 style="color:#ff4081; text-align:center;">
+  🎨 Zapisane rysunki
+</h3>
+
+<div id="adminDrawings"
+     style="max-height:420px; overflow-y:auto; padding:10px;">
+  <!-- rysunki pojawią się tu automatycznie -->
 </div>
 
-<h3>Wszystkie pytania quizu</h3>
-<div id="quizQuestionsList"></div>
-
+    <button onclick="window.close()" style="padding:12px 30px; background:#ff4081; color:white; border:none; border-radius:12px; font-size:1.2rem; cursor:pointer;">
+      Zamknij okno
+    </button>
+  </div>
 </div>
 
-<!-- ================= FIREBASE ================= -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, deleteDoc, doc }
-  from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+  
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import { getFirestore, collection, onSnapshot, deleteDoc, doc } 
+    from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBf7tYEGzG112MQ2xKmzKJv9SAZbH6Y7so",
-  authDomain: "quiz-o-nas.firebaseapp.com",
-  projectId: "quiz-o-nas",
-  storageBucket: "quiz-o-nas.appspot.com",
-  messagingSenderId: "467382949049",
-  appId: "1:467382949049:web:bb92db1e925cebec257768"
-};
+  const firebaseConfig = {
+    apiKey: "AIzaSyBf7tYEGzG112MQ2xKmzKJv9SAZbH6Y7so",
+    authDomain: "quiz-o-nas.firebaseapp.com",
+    projectId: "quiz-o-nas",
+    storageBucket: "quiz-o-nas.appspot.com",
+    messagingSenderId: "467382949049",
+    appId: "1:467382949049:web:bb92db1e925cebec257768"
+  };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-/* ===== HASŁO ===== */
-const ADMIN_PASSWORD = "Klaudiusz+Marysia";
-const entered = prompt("Podaj hasło administracyjne:");
-if (entered !== ADMIN_PASSWORD) {
-  alert("Błędne hasło");
-  window.close();
-}
+  onSnapshot(collection(db, "questions"), snapshot => {
+    console.log("LIVE QUESTIONS:", snapshot.docs.length);
+    // TU zaraz wstawimy renderowanie
+  });
 
-/* ===== PYTANIA WBUdOWANE ===== */
-const BUILT_IN = [
-  { q:"Kiedy się poznaliśmy?", answers:["14 lutego","1 marca","28 stycznia","18 sierpnia"], correct:2 },
-  { q:"Jakim pieszczotliwym imieniem mnie nazywałaś?", answers:["Wszystkie","Kochanie","Misiu","Baranek"], correct:0 }
-];
 
-/* ===== RENDER ===== */
-const container = document.getElementById("quizQuestionsList");
+  const ADMIN_PASSWORD = "Klaudiusz+Marysia";
 
-function renderQuestion(q, type, id=null) {
-  const color = type === "built" ? "#ff4081" : "#4caf50";
-  const label = type === "built" ? "Wbudowane" : "Dodane przez nią";
+  // ===== PYTANIA WBUdOWANE (MUSI BYĆ TO SAMO CO W script.js) =====
+ const ALL_QUESTIONS = [
+    { q: "Kiedy się poznaliśmy?", answers: ["14 lutego", "1 marca", "28 stycznia", "18 sierpnia"], correct: 2 },
+    { q: "Jakim pieszczotliwym imieniem mnie nazywałaś?", answers: ["Wszystkie odpowiedzi", "Kochanie", "Misiu", "Baranek"], correct: 0 },
+    { q: "Kiedy był nasz pierwszy pocałunek?", answers: ["14 lutego", "1 września", "28 stycznia", "18 sierpnia"], correct: 3 },
+    { q: "Gdzie była nasza pierwsza randka?", answers: ["Cliffs Old Head of Kinsale", "Nad jeziorem w Górzynie", "Pizzeria przy stacji", "Zoo we Wrocławiu"], correct: 0 },
+    { q: "W jaką grę ciągle graliśmy razem?", answers: ["Among Us", "Ludo", "FIFA", "Minecraft"], correct: 1 },
+    { q: "Co się stało gdy szliśmy na pizzę?", answers: ["Zamknęli pizzerię", "Jedliśmy ją na ławeczce", "Zgubiliśmy się", "Spotkaliśmy znajomych"], correct: 1 },
+    { q: "Jaki drink piłaś u mojej mamy?", answers: ["Aperol", "Prosecco", "Malibu ananasowe", "Mojito"], correct: 2 },
+    { q: "Co się stało z Twoim drinkiem?", answers: ["Przypadkowo Ci go wylałem", "Zostawiłaś go", "Wypiłam go szybko", "Nic się nie stało"], correct: 0 },
+    { q: "Jakie lody kupiliśmy razem?", answers: ["Waniliowe", "Truskawkowe", "Z nutelli", "Czekoladowe"], correct: 2 },
+    { q: "Gdzie byliśmy na Twoich urodzinach?", answers: ["We Wrocławiu w zoo", "Nad jeziorem", "W kinie", "W restauracji"], correct: 0 },
+    { q: "Co było nie tak z hotelem w Poznaniu?", answers: ["Za daleko", "Zimno było", "Kamień na kranach i włosy w łazience", "Za drogi"], correct: 2 },
+    { q: "Dlaczego nazywałaś mnie barankiem?", answers: ["Bo lubiłem owce", "Bo moje włosy puszyły się na deszczu", "Bo byłem uparty", "Bo dużo jadłem"], correct: 1 },
+    { q: "Gdzie usiedliśmy gdy przyleciałem do Ciebie?", answers: ["Na lotnisku", "W kawiarni", "Nad jeziorkiem w Górzynie", "W parku"], correct: 2 },
+    { q: "Jak nazwałaś mnie 28 stycznia?", answers: ["Moim szczęściem", "Moją miłością", "Moim wszystkim", "Moim światem"], correct: 0 },
+    { q: "Co robiliśmy podczas nocnych rozmów?", answers: ["Pisaliśmy wiadomości", "Zasypialiśmy razem", "Graliśmy", "Oglądaliśmy filmy"], correct: 1 }
+  ];
 
-  return `
-    <div class="choice" style="border-left-color:${color}">
-      <div onclick="toggleAnswers(this)">
-        <strong>${q.q}</strong>
-        <div style="font-size:.85rem;color:${color}">
-          ${label} • kliknij aby zobaczyć
+  // Password check
+  const entered = prompt("Podaj hasło administracyjne:");
+  if (entered !== ADMIN_PASSWORD) {
+    alert("Nieprawidłowe hasło.");
+    window.close();
+  }
+
+  // Load points
+  let total = parseInt(localStorage.getItem("quizTotalPoints") || "0");
+  document.getElementById("adminTotal").textContent = total;
+
+  function updateTotal() {
+    localStorage.setItem("quizTotalPoints", total);
+    document.getElementById("adminTotal").textContent = total;
+  }
+
+  window.changePoints = function() {
+    const val = parseInt(document.getElementById("pointsInput").value);
+    if (isNaN(val)) return alert("Wpisz poprawną liczbę.");
+    total += val;
+    updateTotal();
+    document.getElementById("pointsInput").value = "";
+  };
+
+  window.setPoints = function(value) {
+    if (!confirm(`Ustawić punkty na dokładnie ${value}?`)) return;
+    total = value;
+    updateTotal();
+  };
+
+  // NEW: Load & display her Would You Rather choices
+  function loadWyrChoices() {
+    const choices = JSON.parse(localStorage.getItem('wyrChoices') || '[]');
+    const listEl = document.getElementById('choicesList');
+
+    if (choices.length === 0) {
+      listEl.innerHTML = '<p style="color:#aaa; font-style:italic;">Jeszcze nie ma żadnych wyborów.</p>';
+      return;
+    }
+
+    let html = '';
+    choices.forEach(c => {
+      html += `
+        <div class="choice">
+          <strong>${c.date} – ${c.timestamp}</strong><br>
+          <em>${c.question.replace(/\n/g, '<br>')}</em><br>
+          <strong>Wybrała: ${c.chosen}</strong>
+        </div>
+      `;
+    });
+    listEl.innerHTML = html;
+  }
+
+  // Clear history
+  window.clearWyrChoices = function() {
+    if (!confirm("Na pewno chcesz wyczyścić całą historię jej wyborów?")) return;
+    localStorage.removeItem('wyrChoices');
+    loadWyrChoices();
+  };
+
+  // Load choices on page open
+  loadWyrChoices();
+  // ================= QUIZ QUESTIONS VIEW =================
+
+
+
+function loadQuizQuestions() {
+  const container = document.getElementById("quizQuestionsList");
+  const custom = JSON.parse(localStorage.getItem("customQuizQuestions") || "[]");
+
+  let html = "";
+  let counter = 1;
+
+  function questionBlock(q, type, deleteIndex = null) {
+    const color = type === "built" ? "#ff4081" : "#4caf50";
+    const label = type === "built" ? "Pytanie wbudowane" : "Dodane przez nią";
+
+    return `
+      <div class="choice" style="border-left-color:${color}">
+        <div onclick="toggleAnswers(this)" style="cursor:pointer;">
+          <strong>${counter++}. ${q.q}</strong>
+          <div style="font-size:0.85rem;color:${color};margin-top:4px;">
+            ${label} • kliknij aby zobaczyć odpowiedzi
+          </div>
+        </div>
+
+        <div class="answers" style="display:none;margin-top:12px;">
+          ${q.answers.map((a,i)=>
+            `<div>${i===q.correct?`<b>${a}</b>`:a}</div>`
+          ).join("")}
+
+          ${
+            deleteIndex !== null ? `
+            <button onclick="deleteCustomQuestion(${deleteIndex})"
+              style="margin-top:10px;background:#f44336;color:white;
+                     border:none;padding:6px 12px;border-radius:6px;cursor:pointer;">
+              Usuń pytanie
+            </button>` : ""
+          }
         </div>
       </div>
-      <div class="answers" style="display:none;margin-top:10px">
-        ${q.answers.map((a,i)=>`
-          <div>${i===q.correct?`<b>${a}</b>`:a}</div>`).join("")}
-        ${id?`
-          <button onclick="deleteQ('${id}')" style="background:#f44336;color:white">
-            Usuń
-          </button>`:""}
-      </div>
-    </div>
-  `;
+    `;
+  }
+
+  ALL_QUESTIONS.forEach(q => {
+    html += questionBlock(q, "built");
+  });
+
+  custom.forEach((q,i) => {
+    html += questionBlock(q, "custom", i);
+  });
+
+  container.innerHTML = html || "<p style='color:#aaa'>Brak pytań.</p>";
 }
 
-window.toggleAnswers = el => {
-  const a = el.nextElementSibling;
-  a.style.display = a.style.display==="none"?"block":"none";
+
+// Load on open
+loadQuizQuestions();
+
+window.deleteCustomQuestion = function(index) {
+  if (!confirm("Usunąć to pytanie?")) return;
+
+  const custom = JSON.parse(localStorage.getItem("customQuizQuestions") || "[]");
+  custom.splice(index, 1);
+  localStorage.setItem("customQuizQuestions", JSON.stringify(custom));
+
+  loadQuizQuestions();
 };
 
-window.deleteQ = async id => {
-  if (!confirm("Usunąć pytanie?")) return;
-  await deleteDoc(doc(db,"questions",id));
+// 🔄 Auto-refresh gdy ona doda pytanie
+window.addEventListener("storage", (e) => {
+  if (e.key === "customQuizQuestions") {
+    loadQuizQuestions();
+  }
+});
+
+window.toggleAnswers = function(el) {
+  const answers = el.nextElementSibling;
+  answers.style.display =
+    answers.style.display === "none" ? "block" : "none";
 };
 
-/* ===== FIRESTORE LIVE ===== */
-onSnapshot(collection(db,"questions"), snap=>{
-  container.innerHTML="";
-  BUILT_IN.forEach(q=>{
-    container.innerHTML += renderQuestion(q,"built");
-  });
-  snap.forEach(d=>{
-    container.innerHTML += renderQuestion(d.data(),"custom",d.id);
+import { collection, onSnapshot } 
+  from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+onSnapshot(collection(db, "drawings"), snapshot => {
+  const box = document.getElementById("adminDrawings");
+  if (!box) return;
+
+  box.innerHTML = "";
+
+  snapshot.forEach(doc => {
+    const d = doc.data();
+    const img = document.createElement("img");
+
+    img.src = d.url;
+    img.style = `
+      width:100%;
+      max-width:360px;
+      display:block;
+      margin:12px auto;
+      border-radius:14px;
+      border:2px solid #ff4081;
+    `;
+
+    box.appendChild(img);
   });
 });
 
-/* ===== PUNKTY ===== */
-let total = Number(localStorage.getItem("quizTotalPoints")||0);
-document.getElementById("adminTotal").textContent = total;
 
-window.changePoints = ()=>{
-  const v = Number(pointsInput.value);
-  if(isNaN(v)) return;
-  total+=v;
-  save();
-};
-
-window.setPoints = v=>{
-  total=v;
-  save();
-};
-
-function save(){
-  localStorage.setItem("quizTotalPoints",total);
-  adminTotal.textContent=total;
-}
 </script>
 
 </body>
