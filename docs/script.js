@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const REWARD_LEVELS = [
     { points: 5,  name: "Licznik miłości ❤️", type: "counter",    startDate: "2025-03-15" },
     { points: 10, name: "Galeria wspomnień 📸", type: "slideshow", images: ["https://via.placeholder.com/600x400/ffb3c6/ffffff?text=Zdjęcie+1","https://via.placeholder.com/600x400/ff99b4/ffffff?text=Zdjęcie+2","https://via.placeholder.com/600x400/ffccd5/ffffff?text=Zdjęcie+3"] },
-    { points: 15, name: "Wiadomość ❤️", type: "text", content: () => getDailyMessage()},
+    { points: 15, name: "Wiadomość ❤️", type: "text", content: () => getDailyRewardMessage()},
     { points: 20, name: "Narysuj naszą przyszłość ♡", type: "drawing" },
     { points: 35, name: "Odliczamy do naszej rocznicy! 🎉❤️", type: "countdown", targetDate: "2026-03-15" }
   ];
@@ -56,7 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
     finalContent: document.getElementById('finalContent'),
     rewardsList: document.getElementById('rewardsList'),
     addQuestion: document.getElementById('addQuestionScreen'),
-
   };
 
   // ================= NARZĘDZIA =================
@@ -300,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (r.type === "text" && r.content) {
           const msg = document.createElement('p');
           msg.style.cssText = "font-size:1.45rem; color:#d81b60; margin-top:20px; font-style:italic; line-height:1.7;";
-          msg.textContent = r.content;
+          msg.textContent = r.content();
           div.appendChild(msg);
         } else if (r.type === "drawing") {
           document.getElementById("drawReward").style.display = "block";
@@ -317,13 +316,12 @@ document.addEventListener('DOMContentLoaded', () => {
     showScreen("rewards");
   }
 
- 
   // ================= WOULD YOU RATHER – DAILY + SAVING CHOICES =================
   const baseWyrQuestions = [
     { q: "Wolałabyś…", a: "Całować się ze mną w deszczu w Dublinie", b: "Tulić się do mnie pod kocem przy kominku w górach" },
     { q: "Wolałabyś…", a: "Zrobić ze mną spontaniczną podróż samochodem w nocy", b: "Cały dzień leżeć ze mną w łóżku i oglądać seriale" },
     { q: "Wolałabyś…", a: "Zjeść ze mną pizzę o 3 w nocy na ławce", b: "Zjeść ze mną elegancką kolację przy świecach" },
-    { q: "Wolałabyś…", a: "Usłyszeć ode mnie „kocham Cię” 100 razy dziennie", b: "Dostać ode mnie codziennie mały liścik z sercem" },
+    { q: "Wolałabyś…", a: "Usłyszeć ode mnie „kocham Cię" 100 razy dziennie", b: "Dostać ode mnie codziennie mały liścik z sercem" },
     { q: "Wolałabyś…", a: "Tańczyć ze mną w kuchni o północy", b: "Śpiewać ze mną pod prysznicem (nawet jak fałszujemy)" },
     { q: "Wolałabyś…", a: "Mieć ze mną romantyczny piknik nad jeziorem", b: "Oglądać ze mną zachód słońca na dachu" },
     { q: "Wolałabyś…", a: "Zrobić ze mną sesję zdjęciową w strojach z epoki", b: "Zrobić ze mną challenge na TikToku" },
@@ -344,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (savedDate !== today || !dailyQuestions || dailyQuestions.length === 0) {
       const shuffled = [...baseWyrQuestions].sort(() => 0.5 - Math.random());
-      dailyQuestions = shuffled.slice(0, 6); // liczba pytań na dzień – możesz zmienić
+      dailyQuestions = shuffled.slice(0, 6);
       localStorage.setItem('wyrDailyQuestions', JSON.stringify(dailyQuestions));
       localStorage.setItem('wyrDate', today);
       localStorage.setItem('wyrCurrentIndex', '0');
@@ -360,7 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     choices.push({
       date: today,
-      time: time,
+      timestamp: time,
       question: `${questionObj.q}\nA: ${questionObj.a}\nB: ${questionObj.b}`,
       chosen: choice
     });
@@ -426,7 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function adminAddPoints() {
+  window.adminAddPoints = function() {
     const input = document.getElementById("adminPointsInput");
     const val = parseInt(input.value);
     if (isNaN(val)) return alert("Wpisz poprawną liczbę.");
@@ -437,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
     input.value = "";
   }
 
-  function adminSetPoints(val) {
+  window.adminSetPoints = function(val) {
     if (!confirm(`Ustawić punkty na dokładnie ${val}?`)) return;
     total = val;
     saveTotal();
@@ -445,7 +443,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById("adminTotal").textContent = total;
   }
 
-  function closeAdmin() {
+  window.closeAdmin = function() {
     document.getElementById("adminPanel").style.display = "none";
     showScreen("menu");
   }
@@ -470,10 +468,8 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   document.getElementById('finalMenuBtn').onclick = () => showScreen("menu");
   document.getElementById('addQuestionBtn').onclick = () => {
-  showScreen('addQuestion');
-};
-
-
+    showScreen('addQuestion');
+  };
 
   // ================= SHOW WYR BUTTON IF UNLOCKED =================
   if (wyrUnlocked) {
@@ -486,75 +482,74 @@ document.addEventListener('DOMContentLoaded', () => {
   showScreen("menu");
 
   // ================= UNOSZĄCE SIĘ SERCA =================
-function createFloatingHearts() {
-  const count = window.innerWidth > 768 ? 14 : 8; // więcej na dużym ekranie
-  for (let i = 0; i < count; i++) {
-    const heart = document.createElement('div');
-    heart.className = 'floating-heart';
-    heart.innerHTML = Math.random() > 0.4 ? '💗' : '♡';
-    heart.style.left = Math.random() * 100 + '%';
-    heart.style.animationDuration = (10 + Math.random() * 14) + 's'; // 10-24s
-    heart.style.animationDelay = Math.random() * 8 + 's';
-    document.body.appendChild(heart);
-  }
-}
-
-// wywołaj po załadowaniu
-createFloatingHearts();
-
-function getUserQuestions(){
-  return JSON.parse(localStorage.getItem("customQuizQuestions") || "[]");
-}
-
-function saveUserQuestion(){
-  const q = document.getElementById("userQ").value.trim();
-  const answers = [...document.querySelectorAll(".userA")].map(i => i.value.trim());
-  const correct = parseInt(document.getElementById("userCorrect").value);
-
-  if (!q || answers.some(a => !a)) {
-    alert("Uzupełnij wszystko ❤️");
-    return;
+  function createFloatingHearts() {
+    const count = window.innerWidth > 768 ? 14 : 8;
+    for (let i = 0; i < count; i++) {
+      const heart = document.createElement('div');
+      heart.className = 'floating-heart';
+      heart.innerHTML = Math.random() > 0.4 ? '💗' : '♡';
+      heart.style.left = Math.random() * 100 + '%';
+      heart.style.animationDuration = (10 + Math.random() * 14) + 's';
+      heart.style.animationDelay = Math.random() * 8 + 's';
+      document.body.appendChild(heart);
+    }
   }
 
-  const questions = getUserQuestions();
-  questions.push({ q, answers, correct });
-  localStorage.setItem("customQuizQuestions", JSON.stringify(questions));
+  createFloatingHearts();
 
-  alert("Dodano pytanie 💕\nBędzie użyte w quizie!");
-  document.getElementById("userQ").value = "";
-  document.querySelectorAll(".userA").forEach(i => i.value = "");
-
-  showScreen("menu");
-};
-window.saveUserQuestion = async function() {
-  const q = document.getElementById("userQ").value.trim();
-  const answers = [...document.querySelectorAll(".userA")].map(i => i.value.trim());
-  const correct = parseInt(document.getElementById("userCorrect").value);
-
-  if (!q || answers.some(a => !a)) {
-    alert("Uzupełnij wszystko ❤️");
-    return;
+  // ================= PYTANIA UŻYTKOWNIKA =================
+  function getUserQuestions(){
+    return JSON.parse(localStorage.getItem("customQuizQuestions") || "[]");
   }
 
-  // 🔥 FIREBASE
-  const { collection, addDoc, serverTimestamp } =
-    await import("https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js");
+  // ================= ZAPISYWANIE PYTAŃ DO FIREBASE =================
+  window.saveUserQuestion = async function() {
+    const q = document.getElementById("userQ").value.trim();
+    const answers = [...document.querySelectorAll(".userA")].map(i => i.value.trim());
+    const correct = parseInt(document.getElementById("userCorrect").value);
 
-  await addDoc(collection(window.db, "questions"), {
-    q,
-    answers,
-    correct,
-    author: "ona",
-    createdAt: serverTimestamp()
-  });
+    if (!q || answers.some(a => !a)) {
+      alert("Uzupełnij wszystko ❤️");
+      return;
+    }
 
-  alert("Dodano pytanie 💕");
-  document.getElementById("userQ").value = "";
-  document.querySelectorAll(".userA").forEach(i => i.value = "");
-  showScreen("menu");
-};
+    try {
+      // Dynamiczny import Firebase
+      const { collection, addDoc, serverTimestamp } = 
+        await import("https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js");
+
+      // Pobierz db z window (ustawione w index.html)
+      const db = window.firebaseDB;
+      
+      if (!db) {
+        throw new Error("Firebase nie jest zainicjalizowany");
+      }
+
+      // Zapisz do Firebase
+      await addDoc(collection(db, "questions"), {
+        q,
+        answers,
+        correct,
+        author: "ona",
+        createdAt: serverTimestamp()
+      });
+
+      alert("Dodano pytanie 💕\nBędzie użyte w quizie!");
+      
+      // Wyczyść formularz
+      document.getElementById("userQ").value = "";
+      document.querySelectorAll(".userA").forEach(i => i.value = "");
+      
+      showScreen("menu");
+      
+    } catch (error) {
+      console.error("Błąd zapisywania pytania:", error);
+      alert("Wystąpił błąd podczas zapisywania pytania 😢\nSpróbuj ponownie.");
+    }
+  };
 
 });
+
 // ===== RYSOWANIE – CANVAS =====
 const canvas = document.getElementById("drawCanvas");
 if (canvas) {
@@ -606,13 +601,11 @@ if (canvas) {
     drawing = false;
   }
 
-  // Mysz
   canvas.addEventListener("mousedown", startDraw);
   canvas.addEventListener("mousemove", draw);
   canvas.addEventListener("mouseup", stopDraw);
   canvas.addEventListener("mouseleave", stopDraw);
 
-  // Dotyk
   canvas.addEventListener("touchstart", e => {
     e.preventDefault();
     startDraw(e);
@@ -623,14 +616,12 @@ if (canvas) {
   });
   canvas.addEventListener("touchend", stopDraw);
 
-  // Czyszczenie
   window.clearCanvas = function () {
     if (!confirm("Wyczyścić rysunek?")) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   };
-
-  
 }
+
 // ===== FULLSCREEN RYSOWANIA =====
 window.openDrawingFullscreen = function () {
   const dataURL = canvas.toDataURL("image/png");
@@ -673,11 +664,7 @@ window.openDrawingFullscreen = function () {
   document.body.appendChild(overlay);
 };
 
-
-
 // ================= NAGRODA: CODZIENNA WIADOMOŚĆ =================
-
-// lista zapasowa (offline)
 const LOVE_MESSAGES = [
   "Kocham Cię bardziej, niż potrafię to ubrać w słowa ❤️",
   "Jesteś moim ulubionym miejscem na świecie 💕",
@@ -688,19 +675,15 @@ const LOVE_MESSAGES = [
   "Jesteś moim spokojem, radością i domem ❤️"
 ];
 
-// pobierz / wygeneruj wiadomość na dziś
 function getDailyRewardMessage() {
   const today = new Date().toDateString();
   const saved = JSON.parse(localStorage.getItem("dailyRewardMessage") || "null");
 
-  // jeśli już jest na dziś
   if (saved && saved.date === today) {
     return saved.text;
   }
 
-  // nowa losowa
-  const text =
-    LOVE_MESSAGES[Math.floor(Math.random() * LOVE_MESSAGES.length)];
+  const text = LOVE_MESSAGES[Math.floor(Math.random() * LOVE_MESSAGES.length)];
 
   localStorage.setItem(
     "dailyRewardMessage",
