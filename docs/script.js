@@ -525,7 +525,7 @@ function saveUserQuestion(){
   document.querySelectorAll(".userA").forEach(i => i.value = "");
 
   showScreen("menu");
-}
+};
 window.saveUserQuestion = async function() {
   const q = document.getElementById("userQ").value.trim();
   const answers = [...document.querySelectorAll(".userA")].map(i => i.value.trim());
