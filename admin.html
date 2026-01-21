@@ -14,56 +14,10 @@
 <!-- Firebase v8 – bez modułów -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-
 <script>
-  console.log("ADMIN JSON START");
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyBf7tYEGzG112MQ2xKmzKJv9SAZbH6Y7so",
-    authDomain: "quiz-o-nas.firebaseapp.com",
-    projectId: "quiz-o-nas",
-    storageBucket: "quiz-o-nas.appspot.com",
-    messagingSenderId: "467382949049",
-    appId: "1:467382949049:web:bb92db1e925cebec257768"
-  };
-
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-
-  const list = document.getElementById("quizQuestionsList");
-
-  db.collection("questions").onSnapshot(snapshot => {
-    console.log("LIVE QUESTIONS:", snapshot.size);
-
-    list.innerHTML = "";
-
-    if (snapshot.empty) {
-      list.textContent = "Brak pytań w Firestore.";
-      return;
-    }
-
-    snapshot.forEach(doc => {
-      const pre = document.createElement("pre");
-
-      pre.style.border = "1px solid #0f0";
-      pre.style.padding = "12px";
-      pre.style.marginBottom = "12px";
-      pre.style.whiteSpace = "pre-wrap";
-      pre.style.wordBreak = "break-word";
-
-      pre.textContent = JSON.stringify(
-        {
-          id: doc.id,
-          ...doc.data()
-        },
-        null,
-        2
-      );
-
-      list.appendChild(pre);
-    });
-  });
+  document.body.innerHTML = "<h1 style='color:red'>ADMIN DZIAŁA</h1>";
 </script>
 
 </body>
 </html>
+
