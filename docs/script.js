@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const REWARD_LEVELS = [
     { points: 5,  name: "Licznik miłości ❤️", type: "counter",    startDate: "2025-03-15" },
     { points: 10, name: "Galeria wspomnień 📸", type: "slideshow", images: ["https://via.placeholder.com/600x400/ffb3c6/ffffff?text=Zdjęcie+1","https://via.placeholder.com/600x400/ff99b4/ffffff?text=Zdjęcie+2","https://via.placeholder.com/600x400/ffccd5/ffffff?text=Zdjęcie+3"] },
-    { points: 15, name: "Wiadomość ❤️", type: "text", content: "Kocham Cię najbardziej na świecie. Każda chwila z Tobą to najpiękniejszy prezent. 💕" },
+    { points: 15, name: "Wiadomość ❤️", type: "text", content: () => getDailyMessage()},
     { points: 20, name: "Narysuj naszą przyszłość ♡", type: "drawing" },
     { points: 35, name: "Odliczamy do naszej rocznicy! 🎉❤️", type: "countdown", targetDate: "2026-03-15" }
   ];
@@ -791,4 +791,39 @@ if (window.db) {
       }
       img.src = data.url;
     });
+}
+
+// ================= NAGRODA: CODZIENNA WIADOMOŚĆ =================
+
+// lista zapasowa (offline)
+const LOVE_MESSAGES = [
+  "Kocham Cię bardziej, niż potrafię to ubrać w słowa ❤️",
+  "Jesteś moim ulubionym miejscem na świecie 💕",
+  "Każdy dzień z Tobą jest dla mnie nagrodą ✨",
+  "Twoje istnienie sprawia, że wszystko ma sens 💖",
+  "Nie potrzebuję nic więcej, skoro mam Ciebie 🥰",
+  "Z Tobą nawet cisza jest piękna 💫",
+  "Jesteś moim spokojem, radością i domem ❤️"
+];
+
+// pobierz / wygeneruj wiadomość na dziś
+function getDailyRewardMessage() {
+  const today = new Date().toDateString();
+  const saved = JSON.parse(localStorage.getItem("dailyRewardMessage") || "null");
+
+  // jeśli już jest na dziś
+  if (saved && saved.date === today) {
+    return saved.text;
+  }
+
+  // nowa losowa
+  const text =
+    LOVE_MESSAGES[Math.floor(Math.random() * LOVE_MESSAGES.length)];
+
+  localStorage.setItem(
+    "dailyRewardMessage",
+    JSON.stringify({ date: today, text })
+  );
+
+  return text;
 }
