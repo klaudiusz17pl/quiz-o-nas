@@ -607,3 +607,125 @@ window.saveUserQuestion = async function() {
 };
 
 });
+// ===== RYSOWANIE – CANVAS =====
+const canvas = document.getElementById("drawCanvas");
+if (canvas) {
+  const ctx = canvas.getContext("2d");
+
+  let drawing = false;
+  let lastX = 0;
+  let lastY = 0;
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    if (e.touches) {
+      return {
+        x: e.touches[0].clientX - rect.left,
+        y: e.touches[0].clientY - rect.top
+      };
+    }
+    return {
+      x: e.offsetX,
+      y: e.offsetY
+    };
+  }
+
+  function startDraw(e) {
+    drawing = true;
+    const p = getPos(e);
+    lastX = p.x;
+    lastY = p.y;
+  }
+
+  function draw(e) {
+    if (!drawing) return;
+    const p = getPos(e);
+
+    ctx.strokeStyle = document.getElementById("drawColor").value;
+    ctx.lineWidth = document.getElementById("drawSize").value;
+    ctx.lineCap = "round";
+
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+
+    lastX = p.x;
+    lastY = p.y;
+  }
+
+  function stopDraw() {
+    drawing = false;
+  }
+
+  // Mysz
+  canvas.addEventListener("mousedown", startDraw);
+  canvas.addEventListener("mousemove", draw);
+  canvas.addEventListener("mouseup", stopDraw);
+  canvas.addEventListener("mouseleave", stopDraw);
+
+  // Dotyk
+  canvas.addEventListener("touchstart", e => {
+    e.preventDefault();
+    startDraw(e);
+  });
+  canvas.addEventListener("touchmove", e => {
+    e.preventDefault();
+    draw(e);
+  });
+  canvas.addEventListener("touchend", stopDraw);
+
+  // Czyszczenie
+  window.clearCanvas = function () {
+    if (!confirm("Wyczyścić rysunek?")) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  // ZAPIS LOKALNY (PNG)
+  window.saveDrawingLocal = function () {
+    const dataURL = canvas.toDataURL("image/png");
+    localStorage.setItem("savedDrawing", dataURL);
+    alert("💖 Rysunek zapisany!");
+  };
+}
+// ===== FULLSCREEN RYSOWANIA =====
+window.openDrawingFullscreen = function () {
+  const dataURL = canvas.toDataURL("image/png");
+
+  const overlay = document.createElement("div");
+  overlay.style = `
+    position:fixed; inset:0; background:rgba(0,0,0,0.9);
+    z-index:5000; display:flex; justify-content:center; align-items:center;
+  `;
+
+  const box = document.createElement("div");
+  box.style = `
+    background:white; padding:20px; border-radius:16px;
+    max-width:95%; max-height:95%;
+  `;
+
+  const bigCanvas = document.createElement("canvas");
+  bigCanvas.width = 900;
+  bigCanvas.height = 600;
+  bigCanvas.style = "border:2px solid #ff4081; border-radius:12px;";
+
+  const bctx = bigCanvas.getContext("2d");
+  const img = new Image();
+  img.onload = () => bctx.drawImage(img, 0, 0, bigCanvas.width, bigCanvas.height);
+  img.src = dataURL;
+
+  const closeBtn = document.createElement("button");
+  closeBtn.textContent = "Zamknij";
+  closeBtn.style = `
+    display:block; margin:15px auto 0;
+    padding:10px 24px; background:#ff4081;
+    color:white; border:none; border-radius:10px;
+    font-size:1.1rem; cursor:pointer;
+  `;
+  closeBtn.onclick = () => document.body.removeChild(overlay);
+
+  box.appendChild(bigCanvas);
+  box.appendChild(closeBtn);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+};
