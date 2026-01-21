@@ -725,73 +725,15 @@ window.openDrawingFullscreen = function () {
   document.body.appendChild(overlay);
 };
 
-// ================= FIREBASE DRAWINGS =================
-
-// zapisz rysunek do Firebase
-window.saveDrawingLocal = async function () {
-  if (!window.db || !window.storage) {
-    alert("Firebase jeszcze się ładuje");
+window.saveDrawingLocal = function () {
+  if (typeof window.saveDrawingFirebase !== "function") {
+    alert("Firebase jeszcze się ładuje…");
     return;
   }
-
-  const canvas = document.getElementById("drawCanvas");
-  if (!canvas) return;
-
-  try {
-    const dataURL = canvas.toDataURL("image/png");
-
-    const fileName = "drawing_" + Date.now() + ".png";
-    const imgRef = firebaseStorageRef(fileName);
-
-    await imgRef.putString(dataURL, "data_url");
-    const url = await imgRef.getDownloadURL();
-
-    await window.db.collection("drawings").add({
-      url,
-      createdAt: new Date()
-    });
-
-    alert("💖 Rysunek zapisany!");
-  } catch (e) {
-    console.error(e);
-    alert("❌ Błąd zapisu rysunku");
-  }
+  window.saveDrawingFirebase();
 };
 
-// helper do storage
-function firebaseStorageRef(fileName) {
-  return window.storage.ref().child("drawings/" + fileName);
-}
 
-// ================= PODGLĄD – NAGRODY =================
-
-if (window.db) {
-  window.db.collection("drawings")
-    .orderBy("createdAt", "desc")
-    .limit(1)
-    .onSnapshot(snapshot => {
-      if (snapshot.empty) return;
-
-      const data = snapshot.docs[0].data();
-      const box = document.getElementById("savedDrawingBox");
-      if (!box) return;
-
-      let img = document.getElementById("savedDrawingPreview");
-      if (!img) {
-        img = document.createElement("img");
-        img.id = "savedDrawingPreview";
-        img.style = `
-          max-width:100%;
-          display:block;
-          margin:20px auto;
-          border-radius:16px;
-          border:2px solid #ff4081;
-        `;
-        box.appendChild(img);
-      }
-      img.src = data.url;
-    });
-}
 
 // ================= NAGRODA: CODZIENNA WIADOMOŚĆ =================
 
