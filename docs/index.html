@@ -232,7 +232,22 @@
 <!-- FIREBASE -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-  import { getFirestore } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    onSnapshot,
+    serverTimestamp,
+    query,
+    orderBy,
+    limit
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+  import {
+    getStorage,
+    ref,
+    uploadString,
+    getDownloadURL
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-storage.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyBf7tYEGzG112MQ2xKmzKJv9SAZbH6Y7so",
@@ -243,8 +258,67 @@
     appId: "1:467382949049:web:bb92db1e925cebec257768"
   };
 
+  // INIT
   const app = initializeApp(firebaseConfig);
-  window.db = getFirestore(app);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
+
+  // 🔗 udostępniamy funkcję zapisu globalnie
+  window.saveDrawingFirebase = async function () {
+    const canvas = document.getElementById("drawCanvas");
+    if (!canvas) return alert("Brak canvas");
+
+    try {
+      const dataURL = canvas.toDataURL("image/png");
+      const fileName = `drawing_${Date.now()}.png`;
+
+      const imgRef = ref(storage, `drawings/${fileName}`);
+      await uploadString(imgRef, dataURL, "data_url");
+
+      const url = await getDownloadURL(imgRef);
+
+      await addDoc(collection(db, "drawings"), {
+        url,
+        createdAt: serverTimestamp()
+      });
+
+      alert("💖 Rysunek zapisany w Firebase!");
+    } catch (e) {
+      console.error(e);
+      alert("❌ Błąd zapisu rysunku");
+    }
+  };
+
+  // 👀 PODGLĄD OSTATNIEGO RYSUNKU (NAGRODY)
+  const q = query(
+    collection(db, "drawings"),
+    orderBy("createdAt", "desc"),
+    limit(1)
+  );
+
+  onSnapshot(q, snap => {
+    if (snap.empty) return;
+
+    const data = snap.docs[0].data();
+    const box = document.getElementById("savedDrawingBox");
+    if (!box) return;
+
+    let img = document.getElementById("savedDrawingPreview");
+    if (!img) {
+      img = document.createElement("img");
+      img.id = "savedDrawingPreview";
+      img.style = `
+        max-width:100%;
+        display:block;
+        margin:20px auto;
+        border-radius:16px;
+        border:2px solid #ff4081;
+      `;
+      box.appendChild(img);
+    }
+
+    img.src = data.url;
+  });
 </script>
 
 
