@@ -2,56 +2,21 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>Admin – Quiz</title>
+  <title>Admin – JSON</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <style>
-    body {
-      background: #111;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      padding: 30px;
-    }
-    h1 {
-      color: #ff4081;
-      text-align: center;
-      margin-bottom: 30px;
-    }
-    .question {
-      border: 1px solid #ff4081;
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-      cursor: pointer;
-      background: rgba(255,255,255,0.05);
-    }
-    .answers {
-      display: none;
-      margin-top: 10px;
-    }
-    .delete-btn {
-      margin-top: 10px;
-      background: #f44336;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-  </style>
 </head>
-<body>
+<body style="background:#000;color:#0f0;font-family:monospace;padding:20px;">
 
-<h1>Panel administracyjny</h1>
+<h1>Admin – pytania (JSON)</h1>
 
-<div id="quizQuestionsList"></div>
+<div id="quizQuestionsList">Ładowanie danych…</div>
 
-<!-- Firebase v8 – BEZ modułów -->
+<!-- Firebase v8 – bez modułów -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
 <script>
-  console.log("ADMIN SCRIPT STARTED");
+  console.log("ADMIN JSON START");
 
   const firebaseConfig = {
     apiKey: "AIzaSyBf7tYEGzG112MQ2xKmzKJv9SAZbH6Y7so",
@@ -66,47 +31,36 @@
   const db = firebase.firestore();
 
   const list = document.getElementById("quizQuestionsList");
-  if (!list) {
-    alert("BŁĄD: brak #quizQuestionsList");
-  }
 
   db.collection("questions").onSnapshot(snapshot => {
+    console.log("LIVE QUESTIONS:", snapshot.size);
+
     list.innerHTML = "";
 
     if (snapshot.empty) {
-      list.innerHTML = "<p style='color:#aaa'>Brak pytań w Firestore.</p>";
+      list.textContent = "Brak pytań w Firestore.";
       return;
     }
 
     snapshot.forEach(doc => {
-      const q = doc.data();
+      const pre = document.createElement("pre");
 
-      const box = document.createElement("div");
-      box.className = "question";
+      pre.style.border = "1px solid #0f0";
+      pre.style.padding = "12px";
+      pre.style.marginBottom = "12px";
+      pre.style.whiteSpace = "pre-wrap";
+      pre.style.wordBreak = "break-word";
 
-      box.innerHTML = `
-        <strong>${q.q}</strong>
-        <div class="answers">
-          ${q.answers.map((a, i) =>
-            `<div>${i === q.correct ? "✅" : "❌"} ${a}</div>`
-          ).join("")}
-          <button class="delete-btn">Usuń</button>
-        </div>
-      `;
+      pre.textContent = JSON.stringify(
+        {
+          id: doc.id,
+          ...doc.data()
+        },
+        null,
+        2
+      );
 
-      const answers = box.querySelector(".answers");
-      box.onclick = () => {
-        answers.style.display =
-          answers.style.display === "none" ? "block" : "none";
-      };
-
-      box.querySelector(".delete-btn").onclick = async e => {
-        e.stopPropagation();
-        if (!confirm("Usunąć pytanie?")) return;
-        await db.collection("questions").doc(doc.id).delete();
-      };
-
-      list.appendChild(box);
+      list.appendChild(pre);
     });
   });
 </script>
