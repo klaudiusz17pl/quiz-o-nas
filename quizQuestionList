@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin – Quiz ❤️</title>
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    body {
+      background:#111;
+      color:#fff;
+      font-family:Segoe UI,sans-serif;
+      padding:30px;
+    }
+    .container {
+      max-width:900px;
+      margin:0 auto;
+      background:rgba(255,255,255,0.08);
+      padding:40px;
+      border-radius:16px;
+    }
+    h1 {
+      color:#ff4081;
+      text-align:center;
+      margin-bottom:40px;
+    }
+    .question-box {
+      border:1px solid #ff4081;
+      border-radius:12px;
+      padding:16px;
+      margin-bottom:16px;
+      cursor:pointer;
+      background:rgba(255,255,255,0.05);
+    }
+    .answers {
+      display:none;
+      margin-top:12px;
+    }
+    .answers div {
+      margin:4px 0;
+    }
+    .delete-btn {
+      margin-top:12px;
+      background:#f44336;
+      color:white;
+      border:none;
+      padding:6px 12px;
+      border-radius:6px;
+      cursor:pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Panel administracyjny ❤️</h1>
+
+  <div id="quizQuestionsList"></div>
+
+  <div style="text-align:center;margin-top:40px;">
+    <button onclick="window.close()"
+      style="padding:12px 28px;background:#ff4081;color:white;
+             border:none;border-radius:10px;font-size:1.1rem;cursor:pointer;">
+      Zamknij
+    </button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+  import {
+    getFirestore,
+    collection,
+    onSnapshot,
+    deleteDoc,
+    doc
+  } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBf7tYEGzG112MQ2xKmzKJv9SAZbH6Y7so",
+    authDomain: "quiz-o-nas.firebaseapp.com",
+    projectId: "quiz-o-nas",
+    storageBucket: "quiz-o-nas.appspot.com",
+    messagingSenderId: "467382949049",
+    appId: "1:467382949049:web:bb92db1e925cebec257768"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const list = document.getElementById("quizQuestionsList");
+
+  // 🔐 Proste hasło admina
+  const ADMIN_PASSWORD = "Klaudiusz+Marysia";
+  const entered = prompt("Podaj hasło administracyjne:");
+  if (entered !== ADMIN_PASSWORD) {
+    alert("Nieprawidłowe hasło.");
+    window.close();
+  }
+
+  // 🔥 FIRESTORE → ADMIN
+  onSnapshot(collection(db, "questions"), snapshot => {
+    list.innerHTML = "";
+
+    if (snapshot.empty) {
+      list.innerHTML = "<p style='color:#aaa'>Brak pytań.</p>";
+      return;
+    }
+
+    snapshot.forEach(docSnap => {
+      const q = docSnap.data();
+
+      const box = document.createElement("div");
+      box.className = "question-box";
+
+      box.innerHTML = `
+        <strong>${q.q}</strong>
+        <div class="answers">
+          ${q.answers.map((a, i) =>
+            `<div>${i === q.correct ? "✅" : "❌"} ${a}</div>`
+          ).join("")}
+          <button class="delete-btn">Usuń pytanie</button>
+        </div>
+      `;
+
+      const answers = box.querySelector(".answers");
+
+      box.onclick = () => {
+        answers.style.display =
+          answers.style.display === "none" ? "block" : "none";
+      };
+
+      box.querySelector(".delete-btn").onclick = async e => {
+        e.stopPropagation();
+        if (!confirm("Usunąć to pytanie?")) return;
+        await deleteDoc(doc(db, "questions", docSnap.id));
+      };
+
+      list.appendChild(box);
+    });
+  });
+</script>
+
+</body>
+</html>
