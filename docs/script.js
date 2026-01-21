@@ -183,8 +183,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ================= GRA =================
   function startGame(){
+    // Pobierz zatwierdzone pytania z localStorage
+    const approved = JSON.parse(localStorage.getItem("approvedQuestions") || "[]");
     const custom = getUserQuestions();
-    QUESTIONS = shuffle([...ALL_QUESTIONS, ...custom]).slice(0,15);
+    
+    // Połącz: wbudowane + zatwierdzone + tymczasowe custom
+    QUESTIONS = shuffle([...ALL_QUESTIONS, ...approved, ...custom]).slice(0,15);
+    
     qIndex = score = currentStreak = 0;
     lives = 3;
     lock = false;
