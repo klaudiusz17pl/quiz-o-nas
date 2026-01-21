@@ -60,10 +60,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ================= NARZĘDZIA =================
   window.showScreen = function(s) {
+    console.log("Switching to screen:", s);
     Object.values(els).forEach(e => {
       if (e?.classList) e.classList.remove("active");
     });
-    if (els[s]) els[s].classList.add("active");
+    if (els[s]) {
+      els[s].classList.add("active");
+      console.log("✓ Screen activated:", s);
+    } else {
+      console.error("❌ Screen not found:", s);
+    }
   }
 
   function shuffle(a) {
@@ -302,9 +308,10 @@ document.addEventListener('DOMContentLoaded', () => {
           msg.textContent = r.content();
           div.appendChild(msg);
         } else if (r.type === "drawing") {
-          document.getElementById("drawReward").style.display = "block";
-          div.appendChild(document.getElementById("drawReward"));
-          initDrawingCanvas();
+          const drawReward = document.getElementById("drawReward");
+          if (drawReward) {
+            drawReward.style.display = "block";
+          }
         } else if (r.type === "countdown" && r.targetDate) {
           div.appendChild(createCountdown(r.targetDate));
         }
@@ -321,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { q: "Wolałabyś…", a: "Całować się ze mną w deszczu w Dublinie", b: "Tulić się do mnie pod kocem przy kominku w górach" },
     { q: "Wolałabyś…", a: "Zrobić ze mną spontaniczną podróż samochodem w nocy", b: "Cały dzień leżeć ze mną w łóżku i oglądać seriale" },
     { q: "Wolałabyś…", a: "Zjeść ze mną pizzę o 3 w nocy na ławce", b: "Zjeść ze mną elegancką kolację przy świecach" },
-    { q: "Wolałabyś…", a: "Usłyszeć ode mnie „kocham Cię" 100 razy dziennie", b: "Dostać ode mnie codziennie mały liścik z sercem" },
+    { q: "Wolałabyś…", a: "Usłyszeć ode mnie „kocham Cię 100 razy dziennie", b: "Dostać ode mnie codziennie mały liścik z sercem" },
     { q: "Wolałabyś…", a: "Tańczyć ze mną w kuchni o północy", b: "Śpiewać ze mną pod prysznicem (nawet jak fałszujemy)" },
     { q: "Wolałabyś…", a: "Mieć ze mną romantyczny piknik nad jeziorem", b: "Oglądać ze mną zachód słońca na dachu" },
     { q: "Wolałabyś…", a: "Zrobić ze mną sesję zdjęciową w strojach z epoki", b: "Zrobić ze mną challenge na TikToku" },
