@@ -57,29 +57,64 @@
     <div id="rewardsList"></div>
 
     <!-- Drawing canvas – will be shown here when the reward is unlocked -->
-    <div id="drawReward" style="display:none; margin:30px 0; padding:25px; 
-                                 background:rgba(255,255,255,0.18); border-radius:20px;">
-      <h3 style="color:#ff4081; margin-bottom:20px;">Narysuj naszą przyszłość ♡</h3>
-      <p style="margin-bottom:20px; font-size:1.3rem;">
-        Zrób szybki rysunek – możesz go zapisać (prawy przycisk → zapisz obrazek lub zrób zrzut ekranu)
-      </p>
-      
-      <canvas id="drawCanvas" width="500" height="400" 
-              style="border:2px solid #ffb3c6; border-radius:12px; background:#fff; 
-                     touch-action:none; max-width:100%; display:block; margin:0 auto;"></canvas>
-      
-      <div style="margin-top:20px; text-align:center;">
-        <label>Kolor: <input type="color" id="drawColor" value="#ff4081" style="width:50px; height:40px; vertical-align:middle;"></label>
-        <label style="margin-left:25px;">Grubość: 
-          <input type="range" id="drawSize" min="1" max="20" value="5" style="width:140px; vertical-align:middle;">
-        </label>
-        <button onclick="clearCanvas()" style="margin-left:25px; padding:10px 20px; 
-                                               background:#f44336; color:white; border:none; 
-                                               border-radius:8px; cursor:pointer;">
-          Wyczyść
-        </button>
-      </div>
-    </div>
+    <div id="drawReward" style="display:none; margin:30px 0; padding:25px;
+  background:rgba(255,255,255,0.18); border-radius:20px;">
+
+  <h3 style="color:#ff4081; margin-bottom:15px;">
+    🎨 Narysuj naszą przyszłość ♡
+  </h3>
+
+  <p style="font-size:1.2rem; margin-bottom:15px;">
+    Możesz rysować myszką lub palcem 💕  
+    Zapisz rysunek, żeby wrócić do niego później.
+  </p>
+
+  <!-- CANVAS -->
+  <canvas id="drawCanvas" width="500" height="400"
+    style="border:2px solid #ff4081;
+           border-radius:14px;
+           background:#fff;
+           display:block;
+           margin:0 auto;
+           touch-action:none;
+           max-width:100%;">
+  </canvas>
+
+  <!-- TOOLS -->
+  <div style="margin-top:20px; text-align:center; display:flex;
+              flex-wrap:wrap; gap:12px; justify-content:center;">
+
+    <label>
+      🎨 Kolor
+      <input type="color" id="drawColor" value="#ff4081"
+             style="width:44px; height:36px;">
+    </label>
+
+    <label>
+      ✏️ Grubość
+      <input type="range" id="drawSize" min="1" max="20" value="4">
+    </label>
+
+    <button onclick="clearCanvas()"
+      style="padding:10px 18px; background:#f44336; color:white;
+             border:none; border-radius:8px; cursor:pointer;">
+      Wyczyść
+    </button>
+
+    <button onclick="saveDrawingLocal()"
+      style="padding:10px 18px; background:#4caf50; color:white;
+             border:none; border-radius:8px; cursor:pointer;">
+      💾 Zapisz rysunek
+    </button>
+
+    <button onclick="openDrawingFullscreen()"
+      style="padding:10px 18px; background:#ff4081; color:white;
+             border:none; border-radius:8px; cursor:pointer;">
+      🔍 Powiększ
+    </button>
+  </div>
+</div>
+
 
     <button class="back-btn" id="backRewardsBtn">Wróć do menu</button>
   </div>
