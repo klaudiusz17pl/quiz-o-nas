@@ -317,59 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showScreen("rewards");
   }
 
-  // ================= DRAWING CANVAS =================
-  function initDrawingCanvas() {
-    const canvas = document.getElementById('drawCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let drawing = false;
-
-    ctx.lineCap = 'round';
-    ctx.strokeStyle = '#ff4081';
-    ctx.lineWidth = 5;
-
-    function getPos(e) {
-      const rect = canvas.getBoundingClientRect();
-      return {
-        x: (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left,
-        y: (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top
-      };
-    }
-
-    function start(e) {
-      drawing = true;
-      const pos = getPos(e);
-      ctx.beginPath();
-      ctx.moveTo(pos.x, pos.y);
-    }
-
-    function draw(e) {
-      if (!drawing) return;
-      e.preventDefault();
-      const pos = getPos(e);
-      ctx.lineTo(pos.x, pos.y);
-      ctx.stroke();
-    }
-
-    function stop() {
-      drawing = false;
-    }
-
-    canvas.addEventListener('mousedown', start);
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', stop);
-    canvas.addEventListener('mouseout', stop);
-
-    canvas.addEventListener('touchstart', start);
-    canvas.addEventListener('touchmove', draw);
-    canvas.addEventListener('touchend', stop);
-
-    document.getElementById('drawColor').onchange = e => ctx.strokeStyle = e.target.value;
-    document.getElementById('drawSize').oninput = e => ctx.lineWidth = e.target.value;
-
-    window.clearCanvas = () => ctx.clearRect(0, 0, canvas.width, canvas.height);
-  }
-
+ 
   // ================= WOULD YOU RATHER – DAILY + SAVING CHOICES =================
   const baseWyrQuestions = [
     { q: "Wolałabyś…", a: "Całować się ze mną w deszczu w Dublinie", b: "Tulić się do mnie pod kocem przy kominku w górach" },
@@ -723,14 +671,6 @@ window.openDrawingFullscreen = function () {
   box.appendChild(closeBtn);
   overlay.appendChild(box);
   document.body.appendChild(overlay);
-};
-
-window.saveDrawingLocal = function () {
-  if (typeof window.saveDrawingFirebase !== "function") {
-    alert("Firebase jeszcze się ładuje…");
-    return;
-  }
-  window.saveDrawingFirebase();
 };
 
 
