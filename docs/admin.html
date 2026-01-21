@@ -128,25 +128,7 @@
   // Password check
   const entered = prompt("Podaj hasło administracyjne:");
 
-if (!entered || entered.trim() !== ADMIN_PASSWORD) {
-  document.body.innerHTML = `
-    <div style="
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      height:100vh;
-      background:#000;
-      color:#ff4081;
-      font-size:2rem;
-      font-family:Segoe UI,sans-serif;
-      text-align:center;
-    ">
-      ❌ Brak dostępu<br><br>
-      Nieprawidłowe hasło
-    </div>
-  `;
-  throw new Error("Brak dostępu");
-}
+
 
 
   // Load points
@@ -284,32 +266,7 @@ window.toggleAnswers = function(el) {
     answers.style.display === "none" ? "block" : "none";
 };
 
-import { collection, onSnapshot } 
-  from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-onSnapshot(collection(db, "drawings"), snapshot => {
-  const box = document.getElementById("adminDrawings");
-  if (!box) return;
-
-  box.innerHTML = "";
-
-  snapshot.forEach(doc => {
-    const d = doc.data();
-    const img = document.createElement("img");
-
-    img.src = d.url;
-    img.style = `
-      width:100%;
-      max-width:360px;
-      display:block;
-      margin:12px auto;
-      border-radius:14px;
-      border:2px solid #ff4081;
-    `;
-
-    box.appendChild(img);
-  });
-});
 
 
 </script>
