@@ -26,7 +26,6 @@
   ➕ Dodaj własne pytanie
 </button>
 
-
     <!-- Would You Rather button – appears in MAIN MENU after unlock -->
     <button id="wyrMenuBtn" class="big-btn" 
             style="display:none; background:linear-gradient(90deg, #ff99b4, #ff4081); 
@@ -101,10 +100,10 @@
       Wyczyść
     </button>
 
-    <button onclick="saveDrawingLocal()"
+    <button onclick="saveDrawingFirebase()"
       style="padding:10px 18px; background:#4caf50; color:white;
              border:none; border-radius:8px; cursor:pointer;">
-      💾 Nie Dziala Zapisz rysunek
+      💾 Zapisz rysunek
     </button>
 
     <button onclick="openDrawingFullscreen()"
@@ -112,14 +111,14 @@
              border:none; border-radius:8px; cursor:pointer;">
       🔍 Powiększ
     </button>
-
-
-  <!-- obrazek zostanie wstawiony z JS -->
-</div>
-
   </div>
-</div>
 
+  <!-- Podgląd zapisanego rysunku -->
+  <div id="savedDrawingBox" style="margin-top:30px;">
+    <!-- obrazek zostanie wstawiony z JS -->
+  </div>
+
+</div>
 
     <button class="back-btn" id="backRewardsBtn">Wróć do menu</button>
   </div>
@@ -158,7 +157,6 @@
   <button class="big-btn play" onclick="saveUserQuestion()">💾 Zapisz pytanie</button>
   <button class="back-btn" onclick="showScreen('menu')">Wróć do menu</button>
 </div>
-
 
 </div>
 
@@ -220,8 +218,6 @@
   </div>
 </div>
 
-
-
 <!-- TWÓJ SKRYPT -->
 <script src="script.js"></script>
 
@@ -258,6 +254,9 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const storage = getStorage(app);
+
+  // WAŻNE: Udostępnij db globalnie dla script.js
+  window.firebaseDB = db;
 
   // 🔗 udostępniamy funkcję zapisu globalnie
   window.saveDrawingFirebase = async function () {
@@ -316,7 +315,6 @@
     img.src = data.url;
   });
 </script>
-
 
 </body>
 </html>
